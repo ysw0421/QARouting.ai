@@ -6,9 +6,18 @@
 
 본 프로젝트는 "Agentic AI Engineer Technical Assignment"의 **Task 3: Autonomous Document QA & Routing** 요구사항을 실무 수준으로 구현한 솔루션입니다.
 
-> **과제 목표:**
-> - 문서(PDF/Markdown) 입력 → 도메인 특화 질의응답(QA) → 컴플라이언스 이슈 탐지 → 컨텍스트 기반 워크플로우(티켓 생성, 에스컬레이션 등) 자동화
-> - 에이전트 기반 구조 설계 및 최적화, 자동화된 평가 및 테스트 케이스 제공
+> **과제 목표:**  
+> - 문서(PDF/Markdown) 입력 → 도메인 특화 질의응답(QA) → 컴플라이언스 이슈 탐지 → 컨텍스트 기반 워크플로우(티켓 생성, 에스컬레이션 등) 자동화  
+> - **LangGraph 기반 멀티에이전트 워크플로우 설계 및 실행**  
+> - 에이전트별 역할 분리, 프롬프트 최적화, 그래프형 토폴로지 설계, 자동화된 평가 및 테스트 케이스 제공
+
+---
+
+## 📌 LangGraph 기반 구현 특징
+
+- **LangGraph**는 현대적 멀티에이전트 프레임워크로, 각 에이전트를 노드로 정의하고, 분기/병렬/조건부 실행이 가능한 그래프형 워크플로우를 지원합니다.
+- 본 시스템은 LangGraph를 활용하여 `DocumentIngestorAgent`, `SectionClassifierAgent`, `QAAssistantAgent`, `ComplianceDetectorAgent`, `TicketGeneratorAgent`, `EscalationAgent` 등 각 역할별 에이전트를 그래프 노드로 구현하였으며, 데이터 흐름과 분기 로직을 명확하게 시각화 및 자동화하였습니다.
+- LangGraph의 유연한 구조 덕분에, 향후 Task 1(코드 리뷰), Task 2(논문 분석) 등 다양한 멀티에이전트 워크플로우로 확장도 용이합니다.
 
 ---
 
