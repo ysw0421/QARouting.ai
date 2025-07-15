@@ -1,5 +1,6 @@
 import os
 import re
+from sentence_transformers import SentenceTransformer, util
 
 class DocumentIngestorAgent:
     def ingest(self, file_path):
@@ -43,22 +44,49 @@ class SectionClassifierAgent:
         return sections
 
 class QAAssistantAgent:
+    def __init__(self):
+        self.model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
+
     def answer(self, question, sections):
-        """질문에 대해 섹션 기반 답변 생성"""
-        pass
+        section_titles = list(sections.keys())
+        section_texts = list(sections.values())
+        section_embeddings = self.model.encode(section_texts, convert_to_tensor=True)
+        question_embedding = self.model.encode([question], convert_to_tensor=True)[0]
+        scores = util.cos_sim(question_embedding, section_embeddings)[0]
+        best_idx = int(scores.argmax())
+        best_title = section_titles[best_idx]
+        best_content = section_texts[best_idx]
+        return f"[{best_title}]\n{best_content}"
 
 class ComplianceDetectorAgent:
+    def __init__(self):
+        self.rules = [
+            {"keyword": "개인정보", "law": "개인정보보호법", "desc": "개인정보 관련 내용"},
+            {"keyword": "제3자", "law": "개인정보보호법", "desc": "개인정보 제3자 제공"},
+            {"keyword": "동의", "law": "개인정보보호법", "desc": "동의 관련 조항"},
+            # 필요시 추가 룰
+        ]
+
     def detect(self, sections):
-        """컴플라이언스 이슈 자동 탐지"""
-        pass
+        issues = []
+        for title, content in sections.items():
+            for rule in self.rules:
+                if rule["keyword"] in content or rule["keyword"] in title:
+                    issues.append({
+                        "section": title,
+                        "law": rule["law"],
+                        "desc": rule["desc"],
+                        "evidence": content
+                    })
+        return issues
 
 class EscalationAgent:
     def escalate(self, issue):
-        """복잡/자동화 불가 이슈를 담당자에게 에스컬레이션"""
-        pass
+        # 실무에서는 Slack, 이메일, 이슈 트래커 등과 연동
+        print(f"[에스컬레이션] 법률팀에 자동 전달: 섹션={issue['section']}, 사유={issue['desc']}")
 
 class TicketGeneratorAgent:
     def generate(self, issue):
-        """이슈/질문에 대해 티켓(이슈/작업) 자동 생성"""
-        pass 
-    
+        # 실무에서는 JIRA, GitHub Issues 등과 연동
+        print(f"[티켓 생성] 제목: [컴플라이언스] {issue['section']} - {issue['desc']}")
+        print(f"내용: {issue['evidence'][:100]}... (법령: {issue['law']})\n") 

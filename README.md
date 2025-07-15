@@ -1,116 +1,120 @@
-# AutoRouting.ai
-
-## 🚀 프로젝트 개요
-
-AutoRouting.ai는 입력된 Task Description(작업 설명)에 따라 최적화된 멀티 에이전트 워크플로우를 자동 생성하고, 에이전트 간의 상호작용 및 역할을 명확히 설계하는 시스템입니다. 기술 문서 처리, 법률 문서 분석, 연구 논문 요약, 고객 지원 문서 라우팅 등 다양한 업무 자동화를 지원합니다.
+# QARouting.ai: Agentic AI Engineer Technical Assignment (Task 3)
 
 ---
 
-## 📌 주요 기능
+## 📝 과제 개요
 
-- 입력된 작업 설명에 따라 멀티 에이전트 워크플로우 자동 설계 및 최적화
-- 에이전트별 최적화된 프롬프트 자동 생성 및 역할 분담
-- 에이전트 간 커뮤니케이션 토폴로지 및 워크플로우 시각화
-- 자동화된 성능 평가 지표(metrics) 및 테스트 케이스 제공
-- 컴플라이언스(준법) 이슈 자동 탐지 및 티켓 생성, 법률팀 자동 에스컬레이션
-- 연구 논문 분석, 요약, 논문 간 연결점 및 연구 방향 제안
-- FastAPI 기반 API 엔드포인트 제공 (선택 사항)
-- 웹 기반 시스템 시각화 데모 (선택 사항)
+본 프로젝트는 "Agentic AI Engineer Technical Assignment"의 **Task 3: Autonomous Document QA & Routing** 요구사항을 실무 수준으로 구현한 솔루션입니다.
+
+> **과제 목표:**
+> - 문서(PDF/Markdown) 입력 → 도메인 특화 질의응답(QA) → 컴플라이언스 이슈 탐지 → 컨텍스트 기반 워크플로우(티켓 생성, 에스컬레이션 등) 자동화
+> - 에이전트 기반 구조 설계 및 최적화, 자동화된 평가 및 테스트 케이스 제공
 
 ---
 
-## 🏗️ 아키텍처 및 에이전트 역할
+## 📌 구현 범위 및 주요 기능
 
-- **Document Ingestor**: 문서(PDF/Markdown) 수집 및 전처리, 텍스트 추출
-- **Section Classifier**: 문서 내 섹션(조항, 제목, 본문 등) 자동 분류
-- **Question Answering Agent**: 사용자/시스템 질문에 대해 문서 기반 정확한 답변 제공
-- **Compliance Issue Detector**: 컴플라이언스(준법) 관련 이슈 자동 식별 및 관련 법령 매핑
-- **Legal Escalation Agent**: 복잡하거나 자동화 불가한 법률 쿼리/이슈를 법률팀에 자동 에스컬레이션
-- **Ticket Generator**: 식별된 이슈/질문에 대해 컴플라이언스 검토 티켓(이슈/작업) 자동 생성 및 트래커 연동
-- **Paper Analysis Agent**: 연구 논문에서 핵심 정보 추출, 요약, 논문 간 연결점 분석, 연구 방향 제안
-- **Routing & Notification Agent**: 이슈/질문/티켓을 적절한 담당자에게 자동 라우팅 및 알림 전송
-- **Audit & Logging Agent**: 모든 상호작용, 이슈, 티켓 생성 내역을 기록 및 감사 로그 관리
+- **문서 자동 수집 및 전처리**: PDF/Markdown 문서에서 텍스트 추출 및 섹션 분할
+- **의미 기반 질의응답**: Sentence-BERT 임베딩 기반, 문맥을 이해하는 QA
+- **컴플라이언스 이슈 탐지**: 키워드/룰 기반 규정 위반 자동 식별
+- **워크플로우 자동 분기**: 이슈 심각도에 따라 티켓 생성/에스컬레이션 자동화
+- **테스트 자동화**: 샘플 문서 및 시나리오 기반 end-to-end 평가 스크립트 제공
 
 ---
 
-## 📂 폴더 구조
+## 🏗️ 시스템 아키텍처 및 에이전트 설계
 
-```
-.
-├── agents/              # 에이전트 구현 코드 및 프롬프트
-├── data/                # 평가 데이터셋 및 테스트 케이스
-├── eval/                # 성능 평가 및 벤치마크 코드
-├── api/                 # FastAPI API 엔드포인트 (선택 사항)
-├── frontend/            # 웹 시각화 데모 (선택 사항)
-├── docs/                # 기술 문서 및 아키텍처 다이어그램
-├── logs/                # 로그 파일
-├── scripts/             # 실행 및 환경 설정 스크립트
-├── README.md            # 본 문서
-└── requirements.txt     # 패키지 의존성 목록
+### 1. 아키텍처 다이어그램
+```mermaid
+graph TD;
+    A[문서 입력] --> B(DocumentIngestorAgent);
+    B --> C(SectionClassifierAgent);
+    C --> D(QAAssistantAgent);
+    D -- QA 결과 --> G[답변 반환];
+    C --> E(ComplianceDetectorAgent);
+    E -- 이슈 발견 --> F{분기};
+    F -- 긴급 --> H(EscalationAgent);
+    F -- 일반 --> I(TicketGeneratorAgent);
+    H --> J[에스컬레이션 결과];
+    I --> K[티켓 생성 결과];
 ```
 
+### 2. 에이전트별 역할 및 입출력
+
+| 에이전트                  | 입력                                   | 출력                                   | 주요 역할 설명 |
+|---------------------------|----------------------------------------|----------------------------------------|----------------|
+| DocumentIngestorAgent     | file_path: str                         | document_content: str                  | 문서 파일 읽기 및 텍스트 추출 |
+| SectionClassifierAgent    | document_content: str                  | sections: List[str]                    | 제목 기준 섹션 분할 |
+| QAAssistantAgent          | question: str, sections: List[str]      | answer: str, relevant_section: str     | 의미 기반 질의응답 |
+| ComplianceDetectorAgent   | sections: List[str]                    | compliance_issues: List[Dict]          | 규정 위반 탐지 |
+| TicketGeneratorAgent      | issue: Dict                            | ticket: str                            | 일반 이슈 티켓 생성 |
+| EscalationAgent           | issue: Dict                            | escalation_notice: str                 | 긴급 이슈 에스컬레이션 |
+
 ---
 
-## ⚙️ 설치 방법
+## ⚙️ 설치 및 실행 방법
 
+### 1. 환경 준비
 ```bash
-# 프로젝트 클론
-git clone https://github.com/ysw0421/AutoRouting.ai.git
-cd AutoRouting.ai
+# 저장소 클론
+git clone https://github.com/ysw0421/QARouting.ai.git
+cd QARouting.ai
 
-# 가상 환경 설정
+# (권장) 가상환경 생성 및 활성화
 python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+# Windows: venv\Scripts\activate
+# macOS/Linux: source venv/bin/activate
 
-# 의존성 설치
+# 패키지 설치
 pip install -r requirements.txt
 ```
 
----
-
-## 🚦 사용 방법
-
-### 시스템 실행
-
+### 2. 전체 워크플로우 테스트 실행
 ```bash
-python scripts/run_workflow.py --task "Document QA & Routing" --input "./data/sample.pdf"
+python -m eval.test_workflow
 ```
-
-### (선택 사항) FastAPI 서버 실행
-
-```bash
-uvicorn api.main:app --reload
-```
-
-### (선택 사항) 웹 애플리케이션 실행
-
-```bash
-streamlit run frontend/app.py
-```
+- 최초 실행 시 sentence-transformers 모델이 자동 다운로드됩니다.
+- 콘솔에서 각 에이전트의 처리 결과(답변, 이슈, 티켓/에스컬레이션)를 확인할 수 있습니다.
 
 ---
 
-## 🧪 테스트 및 평가
+## 🧪 평가 및 테스트 시나리오
 
-```bash
-python eval/run_evaluation.py --scenario "Technical Documentation QA"
-```
+### [과제 요구] 공식 테스트 케이스 매핑
 
-### 예시 테스트 시나리오
-- 법률 문서(이용약관)에서 컴플라이언스 이슈 자동 탐지 및 티켓 생성
-- 연구 논문 PDF에서 핵심 정보 추출, 요약, 논문 간 비교 및 연구 방향 제안
-- 기술 문서에서 API QA, 업데이트 티켓 자동 생성, 복잡 쿼리 에스컬레이션
+- **Test Case 1: Technical Documentation QA**
+    - 입력: API 문서 (PDF)
+    - 기대 결과: API 질의응답, 구현 문의 라우팅, 문서 업데이트 티켓 생성 등
+- **Test Case 2: Legal Document Processing**
+    - 입력: 약관(Markdown)
+    - 기대 결과: 컴플라이언스 질의응답, 이슈 자동 탐지 및 티켓/에스컬레이션
+- **Test Case 3: Customer Support Document Routing**
+    - 입력: 제품 매뉴얼
+    - 기대 결과: FAQ 답변, 복잡 이슈 티켓화, 적절한 지원팀 라우팅
+- **Edge Case: Multi-Language Document**
+    - 입력: 다국어(영/일) 혼합 문서
+    - 기대 결과: 언어별 답변, 용어 처리, 팀별 라우팅 등
+
+### [실제 구현] 샘플 테스트 방법
+- `data/sample_document.md` 파일 및 `eval/test_workflow.py` 스크립트 활용
+- 다양한 질문/이슈/섹션이 포함된 문서로 end-to-end 자동 평가 가능
 
 ---
 
-## 📝 기여 방법
+## 🛠️ 실무적 한계 및 확장 방향
 
-1. 이슈 또는 Pull Request를 통해 버그, 개선사항, 신규 기능 제안
-2. 코드 기여 전 반드시 이슈 등록 및 토론 권장
-3. 커밋 메시지는 명확하게 작성
+- **한계**
+    - 현재는 룰/키워드 기반 컴플라이언스 탐지(ML 기반 확장 가능)
+    - PDF 파싱/다국어 처리 등은 기본 수준(고도화 필요)
+    - API/웹 연동, 실시간 알림 등은 미구현(확장 가능)
+- **확장 방향**
+    - Task 1, 2(코드 리뷰, 논문 분석)로의 멀티에이전트 확장
+    - FastAPI/Streamlit 기반 API 및 웹 데모 추가
+    - 평가 자동화, 벤치마크 데이터셋 다양화
+    - LLM 기반 프롬프트 최적화 및 에이전트 협업 강화
 
 ---
 
 ## 📄 라이선스
 
-이 프로젝트는 MIT 라이선스를 따릅니다. LICENSE 파일을 참고하세요. 
+MIT License (LICENSE 파일 참조) 
