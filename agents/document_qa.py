@@ -1,19 +1,32 @@
 import os
 import re
 from sentence_transformers import SentenceTransformer, util
+import pdfplumber
 
 class DocumentIngestorAgent:
     def ingest(self, file_path):
         """
         문서 파일을 입력받아 텍스트로 변환/전처리
-        현재는 .md 파일만 지원
+        .md(마크다운) 및 .pdf 지원
         """
         if not os.path.exists(file_path):
             return "오류: 파일을 찾을 수 없습니다."
 
+        ext = os.path.splitext(file_path)[-1].lower()
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                return f.read()
+            if ext == '.md':
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    return f.read()
+            elif ext == '.pdf':
+                text = ""
+                with pdfplumber.open(file_path) as pdf:
+                    for page in pdf.pages:
+                        text += page.extract_text() or ""
+                if not text.strip():
+                    return "오류: PDF에서 텍스트를 추출할 수 없습니다. (스캔본 등)"
+                return text
+            else:
+                return f"오류: 지원하지 않는 파일 형식입니다: {ext}"
         except Exception as e:
             return f"오류: 파일을 읽는 중 문제가 발생했습니다 - {e}"
 

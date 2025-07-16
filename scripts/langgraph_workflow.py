@@ -1,106 +1,47 @@
-"""LangGraph 기반 문서 QA & 컴플라이언스 자동화 워크플로우"""
-from typing import TypedDict
-from langgraph.graph import StateGraph, END
-from agents.document_qa import (
-    DocumentIngestorAgent, SectionClassifierAgent, QAAssistantAgent,
-    ComplianceDetectorAgent, EscalationAgent, TicketGeneratorAgent
-)
+"""LangGraph 기반 문서 QA & 컴플라이언스 자동화 워크플로우 (병렬 처리/분기 고도화)"""
+# 기존 LangGraph 관련 코드는 주석 처리
+# from langgraph.graph import StateGraph, END
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from agents.terms_check_bot import extract_modified_terms
+from agents.question_intention_ingester import forward_to_compliance_verification
+from agents.potential_compliance_verification import generate_compliance_risk_assessment
+from agents.ticket_generator import generate_ticket
+from agents.legal_team_escalator import escalate_ticket
+from agents.simple_question_answering import answer_simple_question
 
-class DocQAState(TypedDict, total=False):
-    """LangGraph 워크플로우 상태 정의"""
-    file_path: str
-    question: str
-    text: str
-    sections: dict
-    answer: str
-    issues: list
-    result: str
+def classify_intent(text: str) -> str:
+    """
+    Very simple intent classifier: returns 'simple_q' if the text looks like a question,
+    otherwise 'compliance'. In production, use a proper intent classifier.
+    """
+    if text.strip().endswith('?') or text.strip().startswith('Q:'):
+        return 'simple_q'
+    return 'compliance'
 
-def ingest_node(state: DocQAState) -> DocQAState:
-    """문서 파일 ingest 노드"""
-    ingestor = DocumentIngestorAgent()
-    file_path = state.get('file_path')
-    text = ingestor.ingest(file_path)
-    state['text'] = text
-    return state
-
-def classify_node(state: DocQAState) -> DocQAState:
-    """문서 섹션 분류 노드"""
-    classifier = SectionClassifierAgent()
-    text = state.get('text', '')
-    sections = classifier.classify(text)
-    state['sections'] = sections
-    return state
-
-def qa_node(state: DocQAState) -> DocQAState:
-    """질의응답 노드"""
-    qa = QAAssistantAgent()
-    question = state.get('question')
-    sections = state.get('sections', {})
-    answer = qa.answer(question, sections)
-    state['answer'] = answer
-    return state
-
-def compliance_node(state: DocQAState) -> DocQAState:
-    """컴플라이언스 이슈 탐지 노드"""
-    compliance = ComplianceDetectorAgent()
-    sections = state.get('sections', {})
-    issues = compliance.detect(sections)
-    state['issues'] = issues
-    return state
-
-def ticket_node(state: DocQAState) -> DocQAState:
-    """티켓 생성 노드"""
-    ticket = TicketGeneratorAgent()
-    issues = state.get('issues', [])
-    for issue in issues:
-        ticket.generate(issue)
-    state['result'] = 'ticket'
-    return state
-
-def escalation_node(state: DocQAState) -> DocQAState:
-    """에스컬레이션 노드"""
-    escalation = EscalationAgent()
-    issues = state.get('issues', [])
-    for issue in issues:
-        escalation.escalate(issue)
-    state['result'] = 'escalation'
-    return state
-
-def branch_node(state: DocQAState) -> str:
-    """이슈에 따라 티켓/에스컬레이션 분기 노드"""
-    issues = state.get('issues', [])
-    for issue in issues:
-        if '긴급' in issue.get('desc', ''):
-            return 'escalation'
-    return 'ticket'
-
-graph = StateGraph(DocQAState)
-graph.add_node('ingest', ingest_node)
-graph.add_node('classify', classify_node)
-graph.add_node('qa', qa_node)
-graph.add_node('compliance', compliance_node)
-graph.add_node('branch', branch_node)
-graph.add_node('ticket', ticket_node)
-graph.add_node('escalation', escalation_node)
-
-graph.add_edge('ingest', 'classify')
-graph.add_edge('classify', 'qa')
-graph.add_edge('classify', 'compliance')
-graph.add_edge('qa', 'branch')
-graph.add_edge('compliance', 'branch')
-graph.add_conditional_edges('branch', lambda s: s, {'ticket': 'ticket', 'escalation': 'escalation'})
-graph.add_edge('ticket', END)
-graph.add_edge('escalation', END)
-
-app = graph.compile()
-
-if __name__ == '__main__':
-    """LangGraph 기반 문서 QA & 컴플라이언스 자동화 테스트 실행"""
-    TEST_FILE_PATH = './data/sample.md'
-    TEST_QUESTION = '이 문서에서 개인정보 관련 법적 이슈가 있나요?'
-    state: DocQAState = {'file_path': TEST_FILE_PATH, 'question': TEST_QUESTION}
-    print('==== [LangGraph 기반 문서 QA & 컴플라이언스 자동화] ====')
-    for s in app.stream(state):
-        print(f'--- [상태] ---\n{s}\n')
-    print('==== [종료] ====') 
+if __name__ == "__main__":
+    print("=== Unfair Terms Compliance & Q&A Workflow ===")
+    while True:
+        user_input = input("\n[User] Enter modified terms or a question (or type 'exit' to quit): ")
+        if user_input.strip().lower() == 'exit':
+            print("Exiting workflow.")
+            break
+        # 1. 약관/질문 입력 처리
+        intent = classify_intent(user_input)
+        if intent == 'simple_q':
+            # Simple Q&A branch
+            answer = answer_simple_question(user_input)
+            print("[SimpleQuestionAnsweringAgent Answer]\n", answer)
+        else:
+            # Compliance branch
+            modified_terms = extract_modified_terms(user_input)
+            print("[수정된 약관 추출 결과]\n", modified_terms)
+            forwarded_terms = forward_to_compliance_verification(modified_terms)
+            print("[QuestionIntentionIngesterAgent 결과]\n", forwarded_terms)
+            assessment = generate_compliance_risk_assessment(forwarded_terms)
+            print("[규정 준수 위험 평가서]\n", assessment)
+            ticket = generate_ticket(assessment)
+            print("[티켓 생성 결과]\n", ticket)
+            escalation = escalate_ticket(ticket)
+            print("[에스컬레이션 결과]\n", escalation) 
