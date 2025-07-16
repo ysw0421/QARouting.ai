@@ -1,0 +1,97 @@
+{
+    "question_id": "Q-20240716-001",
+    "user_id": "user_123456",
+    "question": "GDPR 데이터 삭제 요청 시 삭제 범위는?",
+    "received_date": "2024-07-16T10:00:00",
+    "final_status": "Escalated",
+    "completed": false,
+    "current_owner": "Product & Data Privacy",
+    "workflow": [
+        {
+            "step": 1,
+            "agent": "DocumentIngestor",
+            "timestamp_start": "2024-07-16T10:00:01",
+            "timestamp_end": "2024-07-16T10:00:04",
+            "latency_sec": 3,
+            "status": "Success",
+            "input": {
+                "document": "GDPR_policy.pdf"
+            },
+            "output": {
+                "text": "This document covers GDPR policies, including data deletion, consent rules, ..."
+            }
+        },
+        {
+            "step": 2,
+            "agent": "Extractor",
+            "timestamp_start": "2024-07-16T10:00:05",
+            "timestamp_end": "2024-07-16T10:00:09",
+            "latency_sec": 4,
+            "status": "Success",
+            "input": {
+                "text": "This document covers GDPR policies, including data deletion, consent rules, ..."
+            },
+            "output": {
+                "key_points": [
+                    "Data subjects have the right to request complete deletion of their personal data.",
+                    "Companies must ensure permanent erasure from all storage locations."
+                ]
+            }
+        },
+        {
+            "step": 3,
+            "agent": "Classifier",
+            "timestamp_start": "2024-07-16T10:00:10",
+            "timestamp_end": "2024-07-16T10:00:13",
+            "latency_sec": 3,
+            "status": "Compliance",
+            "confidence": 0.98,
+            "input": {
+                "key_points": [
+                    "Data subjects have the right to request complete deletion of their personal data.",
+                    "Companies must ensure permanent erasure from all storage locations."
+                ],
+                "question": "GDPR 데이터 삭제 요청 시 삭제 범위는?"
+            },
+            "output": {
+                "classification": "Compliance"
+            }
+        },
+        {
+            "step": 4,
+            "agent": "ComplianceDetector",
+            "timestamp_start": "2024-07-16T10:00:14",
+            "timestamp_end": "2024-07-16T10:00:18",
+            "latency_sec": 4,
+            "status": "RiskDetected",
+            "confidence": 0.92,
+            "input": {
+                "classification": "Compliance",
+                "key_points": [
+                    "Data subjects have the right to request complete deletion of their personal data.",
+                    "Companies must ensure permanent erasure from all storage locations."
+                ]
+            },
+            "output": {
+                "risk_analysis": "Legal risk identified: Data deletion procedures may not fully cover all backup and archival systems, potentially causing GDPR non-compliance."
+            }
+        },
+        {
+            "step": 5,
+            "agent": "EscalationAgent",
+            "timestamp_start": "2024-07-16T10:00:19",
+            "timestamp_end": "2024-07-16T10:00:20",
+            "latency_sec": 1,
+            "status": "Escalated",
+            "escalation_team": "Product & Data Privacy",
+            "input": {
+                "risk_analysis": "Legal risk identified: Data deletion procedures may not fully cover all backup and archival systems, potentially causing GDPR non-compliance."
+            },
+            "output": {
+                "escalation_ticket_id": "TICKET-20240716-105",
+                "assigned_team": "Product & Data Privacy",
+                "priority": "High"
+            }
+        }
+    ]
+}
