@@ -2,6 +2,8 @@ import os
 import re
 from sentence_transformers import SentenceTransformer, util
 import pdfplumber
+import json
+import openai
 
 class DocumentIngestorAgent:
     def ingest(self, file_path):
@@ -72,25 +74,47 @@ class QAAssistantAgent:
         return f"[{best_title}]\n{best_content}"
 
 class ComplianceDetectorAgent:
-    def __init__(self):
-        self.rules = [
-            {"keyword": "개인정보", "law": "개인정보보호법", "desc": "개인정보 관련 내용"},
-            {"keyword": "제3자", "law": "개인정보보호법", "desc": "개인정보 제3자 제공"},
-            {"keyword": "동의", "law": "개인정보보호법", "desc": "동의 관련 조항"},
-            # 필요시 추가 룰
-        ]
+    def __init__(self, openai_api_key=None, model_name="gpt-4-1106-preview"):
+        self.model_name = model_name
+        self.openai_api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
+        if not self.openai_api_key:
+            raise ValueError("OpenAI API 키가 필요합니다.")
 
     def detect(self, sections):
+        """
+        sections: dict (title -> content)
+        반드시 OpenAI GPT API를 사용하여 컴플라이언스(법적/윤리적) 이슈를 판단함.
+        """
         issues = []
+        openai.api_key = self.openai_api_key
         for title, content in sections.items():
-            for rule in self.rules:
-                if rule["keyword"] in content or rule["keyword"] in title:
+            prompt = f"다음 텍스트에서 컴플라이언스(법적/윤리적) 이슈가 있는지 한국어로 요약해줘.\n\n[{title}]\n{content}"
+            try:
+                response = openai.chat.completions.create(
+                    model=self.model_name,
+                    messages=[
+                        {"role": "system", "content": "당신은 컴플라이언스 전문가입니다."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=0.2,
+                    max_tokens=512
+                )
+                llm_result = response.choices[0].message.content or ""
+                llm_result = llm_result.strip()
+                if llm_result:
                     issues.append({
                         "section": title,
-                        "law": rule["law"],
-                        "desc": rule["desc"],
+                        "law": "LLM 기반 추출",
+                        "desc": llm_result,
                         "evidence": content
                     })
+            except Exception as e:
+                issues.append({
+                    "section": title,
+                    "law": "LLM 오류",
+                    "desc": f"OpenAI API 호출 오류: {e}",
+                    "evidence": content
+                })
         return issues
 
 class EscalationAgent:
