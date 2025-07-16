@@ -110,6 +110,93 @@ python -m eval.test_workflow
 
 ---
 
+## 📡 실제 API 사용 예시
+
+### 파일 업로드 (curl)
+```bash
+curl.exe -F "file=@data/sample_openai.md" http://localhost:8000/run_workflow
+```
+
+### 텍스트 입력 (curl)
+```bash
+curl.exe -F "text=이 약관에 개인정보 침해 소지가 있나요?" http://localhost:8000/run_workflow
+```
+
+### Python 코드 예시
+```python
+import requests
+url = "http://localhost:8000/run_workflow"
+files = {'file': open('data/sample_openai.md', 'rb')}
+response = requests.post(url, files=files)
+print(response.json())
+```
+
+---
+
+## 📦 실제 API 응답 예시
+
+### 성공 예시
+```json
+{
+  "result": {
+    "intent": "compliance",
+    "assessment": "[이슈 유형] ...",
+    "ticket": "담당부서: 법무팀 ...",
+    "escalation": "에스컬레이션 대상: ...",
+    "answer": "",
+    "error": ""
+  }
+}
+```
+
+### 실패/에러 예시
+```json
+{
+  "error": "파일을 읽는 중 문제가 발생했습니다 - ..."
+}
+```
+
+---
+
+## 📊 자동화 테스트 결과/리포트 예시
+
+- `eval/benchmark_results.json` 일부:
+```json
+[
+  {
+    "file_type": "md",
+    "question": "이 약관에 개인정보 침해 소지가 있나요?",
+    "expected_routing": "compliance",
+    "actual_routing": "compliance",
+    "success": true,
+    ...
+  },
+  {
+    "file_type": "md",
+    "question": "What is the refund policy?",
+    "expected_routing": "simple_q",
+    "actual_routing": "simple_q",
+    "success": true,
+    ...
+  },
+  {
+    "file_type": "md",
+    "question": "이 약관은 일본어로도 제공되나요?",
+    "expected_routing": "simple_q",
+    "actual_routing": "compliance",
+    "success": false,
+    ...
+  }
+]
+```
+- 콘솔 통계 예시:
+```
+테스트 케이스: 8 / 성공: 7 / 성공률: 87.5%
+[실패] 질문: 이 약관은 일본어로도 제공되나요? | 기대: simple_q | 실제: compliance
+```
+
+---
+
 ## 🛠️ 실무적 한계 및 확장 방향
 
 - **한계**
@@ -121,6 +208,27 @@ python -m eval.test_workflow
     - FastAPI/Streamlit 기반 API 및 웹 데모 추가
     - 평가 자동화, 벤치마크 데이터셋 다양화
     - LLM 기반 프롬프트 최적화 및 에이전트 협업 강화
+
+---
+
+## ⚠️ 한계/개선점/실무 적용시 주의사항
+
+- OCR은 스캔본 품질/언어에 따라 정확도 차이
+- LLM 기반 약관 추출/평가의 일관성/정확도 한계
+- 다국어/비정형 문서 완벽 지원은 어려움
+- 외부 시스템 연동(이메일, Jira 등)은 코드 레벨 시뮬레이션
+- OpenAI API 키/비용/속도 등 운영상 이슈
+
+**개선점**
+- 외부 시스템 실연동, Slack/Jira API 연동
+- 더 다양한 엣지케이스/실제 문서 추가
+- 결과 리포트 엑셀/시각화, 웹 데모 등
+
+**실무 적용시 주의**
+- 개인정보/보안(키 관리, 문서 유출 등)
+- LLM 응답 검증(사람 검토 필요)
+- OCR/다국어 품질 확인
+- API 사용량/비용 관리
 
 ---
 

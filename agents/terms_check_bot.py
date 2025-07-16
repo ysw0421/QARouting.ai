@@ -1,8 +1,15 @@
+from utils.openai_utils import gpt_call
+
 def extract_modified_terms(page_text: str) -> str:
     """
-    입력: 수정된 약관 페이지(텍스트)
-    출력: 수정된 약관(텍스트 추출)
-    실제 환경에서는 diff, NLP 등 활용 가능. 여기서는 예시로 전체 텍스트 반환.
+    Extract only unfair or modified terms from the input text using GPT.
     """
-    # TODO: 실제로는 변경된 부분만 추출하는 로직 필요
-    return page_text.strip() 
+    prompt = f"""
+    아래 텍스트에서 불공정하거나 수정된 약관 조항만 추출해서 반환해줘.
+    [약관 원문]
+    {page_text}
+    """
+    try:
+        return gpt_call(prompt, model="gpt-4-1106-preview-nano")
+    except Exception as e:
+        return f"오류: 약관 추출 실패 - {e}" 

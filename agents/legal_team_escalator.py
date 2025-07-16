@@ -1,13 +1,52 @@
-def escalate_ticket(ticket: dict) -> dict:
+import json
+from utils.openai_utils import gpt_call
+
+def load_legal_org():
+    with open("data/legal_team_org.json", "r", encoding="utf-8") as f:
+        return json.load(f)
+
+def find_responsible_member(issue_type: str, min_level: int = 2) -> dict:
     """
-    입력: 티켓(dict)
-    출력: 담당자, 긴급도 에스컬레이션, 기한 포함 결과 반환
+    이슈 유형(예: 'data privacy', 'IP', 'compliance', 'policy')와 최소 레벨로 담당자 자동 매칭
     """
-    # 실제로는 GPT, 워크플로우 등 활용 가능. 예시 값 사용
-    escalation = {
-        '담당자': '홍길동',
-        '긴급도': ticket.get('긴급도', '상'),
-        '기한': ticket.get('기한', '2024-06-30'),
-        '내용': ticket.get('내용', '')
-    }
-    return escalation 
+    org = load_legal_org()
+    for team in org["teams"]:
+        # 이슈 유형이 responsibilities에 포함된 팀 우선
+        if any(issue_type.lower() in resp.lower() for resp in team["responsibilities"]):
+            # 레벨 높은 멤버 우선
+            sorted_members = sorted(team["members"], key=lambda m: -m["level"])
+            for member in sorted_members:
+                if member["level"] >= min_level:
+                    return {
+                        "team": team["team_name"],
+                        "name_hash": member["name_hash"],
+                        "position": member["position"],
+                        "email": member["email"],
+                        "level": member["level"]
+                    }
+    # fallback: 아무 팀이나
+    for team in org["teams"]:
+        for member in team["members"]:
+            if member["level"] >= min_level:
+                return {
+                    "team": team["team_name"],
+                    "name_hash": member["name_hash"],
+                    "position": member["position"],
+                    "email": member["email"],
+                    "level": member["level"]
+                }
+    return {}
+
+def escalate_ticket(ticket: str, issue_type: str = "compliance", min_level: int = 2) -> str:
+    """
+    티켓 내용과 이슈 유형에 따라 담당자 자동 매칭 및 결과 반환
+    """
+    try:
+        member = find_responsible_member(issue_type, min_level)
+        if member:
+            print(f"[에스컬레이션] {member['team']} - {member['position']} ({member['email']})에게 알림")
+            return f"에스컬레이션 대상: {member['team']} - {member['position']} ({member['email']})"
+        else:
+            return "에스컬레이션 대상 담당자 없음"
+    except Exception as e:
+        return f"오류: 에스컬레이션 실패 - {e}" 

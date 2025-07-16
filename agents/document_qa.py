@@ -2,6 +2,7 @@ import os
 import re
 from sentence_transformers import SentenceTransformer, util
 import pdfplumber
+from utils.openai_utils import gpt_call
 
 class DocumentIngestorAgent:
     def ingest(self, file_path):
@@ -72,26 +73,19 @@ class QAAssistantAgent:
         return f"[{best_title}]\n{best_content}"
 
 class ComplianceDetectorAgent:
-    def __init__(self):
-        self.rules = [
-            {"keyword": "개인정보", "law": "개인정보보호법", "desc": "개인정보 관련 내용"},
-            {"keyword": "제3자", "law": "개인정보보호법", "desc": "개인정보 제3자 제공"},
-            {"keyword": "동의", "law": "개인정보보호법", "desc": "동의 관련 조항"},
-            # 필요시 추가 룰
-        ]
-
     def detect(self, sections):
-        issues = []
-        for title, content in sections.items():
-            for rule in self.rules:
-                if rule["keyword"] in content or rule["keyword"] in title:
-                    issues.append({
-                        "section": title,
-                        "law": rule["law"],
-                        "desc": rule["desc"],
-                        "evidence": content
-                    })
-        return issues
+        # sections: dict (title -> content)
+        text = "\n\n".join([f"[{title}]\n{content}" for title, content in sections.items()])
+        prompt = f"""
+        아래 문서 섹션에서 컴플라이언스(법적/불공정/개인정보 등) 이슈가 의심되는 부분을 모두 찾아,
+        [이슈 유형], [관련 법령], [설명], [근거(문장)] 형태로 JSON 배열로 정리해줘.
+        [문서]
+        {text}
+        """
+        try:
+            return gpt_call(prompt, model="gpt-4-1106-preview-nano")
+        except Exception as e:
+            return f"오류: 컴플라이언스 이슈 추출 실패 - {e}"
 
 class EscalationAgent:
     def escalate(self, issue):

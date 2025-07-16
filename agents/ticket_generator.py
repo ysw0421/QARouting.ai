@@ -1,13 +1,20 @@
-def generate_ticket(assessment: str) -> dict:
+from utils.openai_utils import gpt_call
+
+def generate_ticket(assessment: str) -> str:
     """
-    입력: 규정 준수 위험 평가서(Compliance Risk Assessment)
-    출력: 티켓(담당부서, 기한, 긴급도 포함)
+    Generate a ticket including department, deadline, and urgency from a compliance risk assessment.
     """
-    # 실제로는 GPT, 규칙 기반 등 활용 가능. 예시 값 사용
-    ticket = {
-        '담당부서': '법무팀',
-        '기한': '2024-06-30',
-        '긴급도': '상',
-        '내용': assessment
-    }
-    return ticket 
+    prompt = f"""
+    아래 규정 준수 위험 평가서를 참고하여, 담당부서, 기한, 긴급도가 포함된 티켓을 생성해줘.
+    [평가서]
+    {assessment}
+    ---
+    [출력 예시]
+    담당부서: 법무팀
+    기한: 3일 이내
+    긴급도: 상
+    """
+    try:
+        return gpt_call(prompt, model="gpt-4-1106-preview-nano")
+    except Exception as e:
+        return f"오류: 티켓 생성 실패 - {e}" 
