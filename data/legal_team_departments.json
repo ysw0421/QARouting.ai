@@ -1,0 +1,136 @@
+{
+    "department_name": "Legal and Compliance Team",
+    "total_members": 10,
+    "teams": [
+        {
+            "team_name": "Corporate & Contracts",
+            "members_count": 2,
+            "responsibilities": [
+                "Review and negotiate partnership agreements",
+                "Manage investment contracts",
+                "Provide legal advisory for M&A activities",
+                "General corporate legal affairs (tax, labor law, corporate governance)"
+            ],
+            "members": [
+                {
+                    "name_hash": "a3b48e8e40b264f01a959dff04d111ac82d09fc3f1f24bf3f2047bb0b5e81c13",
+                    "position": "Team Lead (Attorney)",
+                    "email": "yeom4032yeom4032@gmail.com",
+                    "qualifications": ["Licensed attorney", "10+ years in corporate law"],
+                    "level": 3
+                },
+                {
+                    "name_hash": "12849b4871511b4315a1a7191ed9126219e48f2ec2666658a02663478d3e50a2",
+                    "position": "Corporate Counsel",
+                    "email": "yeom4032yeom4032@gmail.com",
+                    "qualifications": ["Licensed attorney", "5+ years in corporate law"],
+                    "level": 2
+                }
+            ]
+        },
+        {
+            "team_name": "Product & Data Privacy",
+            "members_count": 2,
+            "responsibilities": [
+                "Assess legal risks of AI products",
+                "Ensure compliance with data privacy policies (GDPR, CCPA)",
+                "Manage data processing and protection",
+                "Conduct Privacy Impact Assessments (PIA)"
+            ],
+            "members": [
+                {
+                    "name_hash": "571aa79414aaf1d7fb2c57a80e95664883285ab4fbc61ac3e735f71b674ffc1f",
+                    "position": "Team Lead (DPO)",
+                    "email": "yeom4032yeom4032@gmail.com",
+                    "qualifications": ["Certified Data Protection Officer", "Expert in GDPR, CCPA compliance"],
+                    "level": 3
+                },
+                {
+                    "name_hash": "281792fe845abcc50aa4ce40099a2ed1db5dc8f0c38b9cf9abf0324ce02f0314",
+                    "position": "Data Privacy Specialist",
+                    "email": "yeom4032yeom4032@gmail.com",
+                    "qualifications": ["3+ years experience in data privacy"],
+                    "level": 1
+                }
+            ]
+        },
+        {
+            "team_name": "IP & Asset Management",
+            "members_count": 2,
+            "responsibilities": [
+                "Manage copyrights of AI models and datasets",
+                "Register and protect patents and trademarks",
+                "Oversee open-source license compliance",
+                "Handle intellectual property disputes"
+            ],
+            "members": [
+                {
+                    "name_hash": "89c89aa23490a58d12c6d44f02c26506e768edb3b8b41db39c46c0c1f8916c3e",
+                    "position": "Team Lead (IP Counsel)",
+                    "email": "yeom4032yeom4032@gmail.com",
+                    "qualifications": ["Licensed IP attorney or patent attorney", "7+ years in intellectual property"],
+                    "level": 3
+                },
+                {
+                    "name_hash": "9c1ff6e8dfbe102b3e6b7c9e60f5fd1628c1e4b37f4e26c6a62b44d20f89722d",
+                    "position": "IP Attorney",
+                    "email": "yeom4032yeom4032@gmail.com",
+                    "qualifications": ["Licensed attorney", "4+ years in IP management"],
+                    "level": 2
+                }
+            ]
+        },
+        {
+            "team_name": "Compliance & Ethics",
+            "members_count": 2,
+            "responsibilities": [
+                "Establish and maintain AI ethics guidelines",
+                "Monitor internal compliance",
+                "Investigate compliance incidents",
+                "Conduct ethics training sessions"
+            ],
+            "members": [
+                {
+                    "name_hash": "24d0221e162fe131755caa53cd7c6de8454338bc03db9b92f80e6342211928a2",
+                    "position": "Team Lead (Chief Compliance Officer)",
+                    "email": "yeom4032yeom4032@gmail.com",
+                    "qualifications": ["Compliance and ethics management experience", "8+ years in ethics oversight"],
+                    "level": 3
+                },
+                {
+                    "name_hash": "669d5af3b37ca73b4b39b0cc38f951c9e21b97a84f364ccae67e73546e07c315",
+                    "position": "Ethics & Compliance Officer",
+                    "email": "yeom4032yeom4032@gmail.com",
+                    "qualifications": ["3+ years in compliance & ethics"],
+                    "level": 1
+                }
+            ]
+        },
+        {
+            "team_name": "Policy & Government Relations",
+            "members_count": 2,
+            "responsibilities": [
+                "Monitor and analyze regulatory changes",
+                "Communicate with government and regulatory bodies",
+                "Participate in policy formulation",
+                "Collaborate with industry associations and academia"
+            ],
+            "members": [
+                {
+                    "name_hash": "b35f5cd56e41f68315f48a6e8aef03492dd32b034983b03ac39cd1e7b9b93f3a",
+                    "position": "Team Lead (Head of Policy)",
+                    "email": "yeom4032yeom4032@gmail.com",
+                    "qualifications": ["8+ years experience in government relations"],
+                    "level": 3
+                },
+                {
+                    "name_hash": "fd0c116db74141b62c01ee6a49eb8d9f7e2ed0d151815bba1e49385d383cbfaa",
+                    "position": "Policy Analyst",
+                    "email": "yeom4032yeom4032@gmail.com",
+                    "qualifications": ["3+ years experience in policy analysis"],
+                    "level": 1
+                }
+            ]
+        }
+    ]
+}

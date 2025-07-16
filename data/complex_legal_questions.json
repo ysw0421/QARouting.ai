@@ -1,0 +1,54 @@
+{
+    "complex_questions": [
+        {
+            "id": "CLQ-001",
+            "category": "Data Privacy",
+            "question": "If a European user requests deletion of their data, how extensively should we delete it to comply fully with GDPR?",
+            "received_date": "2024-07-16",
+            "priority": "High",
+            "escalation_team": "Product & Data Privacy",
+            "assigned_level": 3,
+            "status": "Pending"
+        },
+        {
+            "id": "CLQ-002",
+            "category": "Intellectual Property",
+            "question": "Our AI model was trained using an open-source model; at what point does our modification constitute a breach of the original open-source license?",
+            "received_date": "2024-07-15",
+            "priority": "Medium",
+            "escalation_team": "IP & Asset Management",
+            "assigned_level": 2,
+            "status": "Under Review"
+        },
+        {
+            "id": "CLQ-003",
+            "category": "AI Ethics & Compliance",
+            "question": "If our AI product exhibits bias causing a user to claim discrimination, what is our company's legal exposure?",
+            "received_date": "2024-07-14",
+            "priority": "High",
+            "escalation_team": "Compliance & Ethics",
+            "assigned_level": 3,
+            "status": "Pending"
+        },
+        {
+            "id": "CLQ-004",
+            "category": "Corporate Contracts",
+            "question": "If a clause in our investment contract significantly restricts business operations, could it be considered an unfair contract term?",
+            "received_date": "2024-07-13",
+            "priority": "Medium",
+            "escalation_team": "Corporate & Contracts",
+            "assigned_level": 2,
+            "status": "Under Review"
+        },
+        {
+            "id": "CLQ-005",
+            "category": "Policy & Regulatory",
+            "question": "How does the new EU AI Act regulation impact our existing product offerings in Europe?",
+            "received_date": "2024-07-12",
+            "priority": "High",
+            "escalation_team": "Policy & Government Relations",
+            "assigned_level": 3,
+            "status": "Completed"
+        }
+    ]
+}
