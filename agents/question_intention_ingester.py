@@ -5,10 +5,13 @@ def classify_intention(text: str) -> str:
     Classify the intention of the input text as 'simple_q', 'compliance', or 'outlier'.
     """
     prompt = f"""
-    아래 텍스트의 의도를 분류해줘.
-    - 단순 질문이면 'simple_q'
-    - 불공정 약관/컴플라이언스 이슈면 'compliance'
-    - 즉시 에스컬레이션이 필요한 특이 케이스면 'outlier'
+    당신은 사용자의 질문을 분석하여 다음 두 가지 유형으로 정확히 분류하는 전문 어시스턴트입니다.
+
+    - **복잡한 질문 (Complex)**: 법률 검토, 심도 있는 규정 준수, 법적 판단, 전문적인 분석 및 추가 검토가 필요한 질문
+    - **단순한 질문 (Simple)**: 간단한 사실 확인, 미리 정의된 서비스 이용 규칙, 서비스 정책 등 즉각적으로 명확하게 답변 가능한 질문
+    - **수정된 약관 확인 요청 (Terms Review)**: 약관, 계약, 정책 등 문서의 수정 또는 갱신된 내용을 확인하고 검토를 요청하는 질문
+
+    질문을 분석하여 반드시 둘 중 하나의 유형으로만 분류하세요.  
     [입력]
     {text}
     [출력]
