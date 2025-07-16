@@ -36,28 +36,24 @@
 ### 1. 아키텍처 다이어그램
 ```mermaid
 graph TD;
-    A[문서 입력] --> B(DocumentIngestorAgent);
-    B --> C(SectionClassifierAgent);
-    C --> D(QAAssistantAgent);
-    D -- QA 결과 --> G[답변 반환];
-    C --> E(ComplianceDetectorAgent);
-    E -- 이슈 발견 --> F{분기};
-    F -- 긴급 --> H(EscalationAgent);
-    F -- 일반 --> I(TicketGeneratorAgent);
-    H --> J[에스컬레이션 결과];
-    I --> K[티켓 생성 결과];
+    User["User\nPrompt / Loop(수정된 약관 체크)"] --> QI["1. QuestionIntentionIngesterAgent"];
+    QI -- "Simple Q" --> SQA["2. SimpleQuestionAnsweringAgent"];
+    SQA --> Answer["Receives Answer"];
+    QI -- "Compliance" --> PCV["3. PotentialComplianceVerificationAgent"];
+    PCV -- "Ticket Needed" --> TG["4. TicketGeneratorAgent"];
+    QI -- "Outlier/Immediate Escalation" --> TG;
+    TG -- "Escalation Needed" --> LTE["5. LegalTeamEscalatorAgent"];
 ```
 
 ### 2. 에이전트별 역할 및 입출력
 
-| 에이전트                  | 입력                                   | 출력                                   | 주요 역할 설명 |
-|---------------------------|----------------------------------------|----------------------------------------|----------------|
-| DocumentIngestorAgent     | file_path: str                         | document_content: str                  | 문서 파일 읽기 및 텍스트 추출 |
-| SectionClassifierAgent    | document_content: str                  | sections: List[str]                    | 제목 기준 섹션 분할 |
-| QAAssistantAgent          | question: str, sections: List[str]      | answer: str, relevant_section: str     | 의미 기반 질의응답 |
-| ComplianceDetectorAgent   | sections: List[str]                    | compliance_issues: List[Dict]          | 규정 위반 탐지 |
-| TicketGeneratorAgent      | issue: Dict                            | ticket: str                            | 일반 이슈 티켓 생성 |
-| EscalationAgent           | issue: Dict                            | escalation_notice: str                 | 긴급 이슈 에스컬레이션 |
+| 에이전트                              | 입력                                   | 출력                                   | 주요 역할 설명 |
+|----------------------------------------|----------------------------------------|----------------------------------------|----------------|
+| QuestionIntentionIngesterAgent         | user_prompt: str                       | route_type: str                        | 사용자의 질문 의도 분류 및 라우팅 결정 |
+| SimpleQuestionAnsweringAgent           | question: str                          | answer: str                            | 단순 질의응답 처리 |
+| PotentialComplianceVerificationAgent   | question: str                          | compliance_issue: bool, details: str   | 컴플라이언스 관련 이슈 탐지 |
+| TicketGeneratorAgent                   | issue_details: str                     | ticket: str                            | 이슈 발생 시 티켓 생성 |
+| LegalTeamEscalatorAgent                | ticket: str                            | escalation_notice: str                 | 법무팀 에스컬레이션 처리 |
 
 ---
 
