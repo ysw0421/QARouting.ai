@@ -3,7 +3,6 @@ import os
 
 
 def gpt_call(prompt, model="gpt-3.5-turbo", temperature=0):
-    # 보안을 위해 환경 변수에서 API 키를 불러옵니다.
     openai.api_key = os.getenv("OPENAI_API_KEY")
     response = openai.ChatCompletion.create(
         model=model,
