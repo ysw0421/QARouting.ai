@@ -2,7 +2,7 @@ import json
 from utils.openai_utils import gpt_call
 
 def load_legal_org():
-    with open("data/legal_team_org.json", "r", encoding="utf-8") as f:
+    with open("data/legal_team_departments.json", "r", encoding="utf-8") as f:
         return json.load(f)
 
 def find_responsible_member(issue_type: str, min_level: int = 2) -> dict:
@@ -37,16 +37,25 @@ def find_responsible_member(issue_type: str, min_level: int = 2) -> dict:
                 }
     return {}
 
-def escalate_ticket(ticket: str, issue_type: str = "compliance", min_level: int = 2) -> str:
+def escalate_ticket(ticket: str, issue_type: str = "compliance", min_level: int = 2) -> dict:
     """
     티켓 내용과 이슈 유형에 따라 담당자 자동 매칭 및 결과 반환
+    항상 dict 반환: {"success": bool, "data": ..., "error": ...}
     """
     try:
         member = find_responsible_member(issue_type, min_level)
         if member:
             print(f"[에스컬레이션] {member['team']} - {member['position']} ({member['email']})에게 알림")
-            return f"에스컬레이션 대상: {member['team']} - {member['position']} ({member['email']})"
+            return {
+                "success": True,
+                "data": {
+                    "team": member["team"],
+                    "position": member["position"],
+                    "email": member["email"],
+                    "level": member["level"]
+                }
+            }
         else:
-            return "에스컬레이션 대상 담당자 없음"
+            return {"success": False, "error": "에스컬레이션 대상 담당자 없음"}
     except Exception as e:
-        return f"오류: 에스컬레이션 실패 - {e}" 
+        return {"success": False, "error": f"에스컬레이션 실패 - {e}"} 

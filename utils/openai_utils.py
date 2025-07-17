@@ -1,15 +1,17 @@
-import openai
+from openai import OpenAI
 import os
 
 
 def gpt_call(prompt, model="gpt-3.5-turbo", temperature=0):
-    openai.api_key = os.getenv("OPENAI_API_KEY")
-    if not openai.api_key:
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
         raise ValueError("OPENAI_API_KEY environment variable not set.")
-    response = openai.ChatCompletion.create(
+    client = OpenAI(api_key=api_key)
+    response = client.chat.completions.create(
         model=model,
-        messages=[{"role": "system", "content": prompt}],
+        messages=[{"role": "user", "content": prompt}],
         temperature=temperature,
         max_tokens=1024,
     )
-    return response['choices'][0]['message']['content'].strip() 
+    content = response.choices[0].message.content
+    return content.strip() if content else "" 
