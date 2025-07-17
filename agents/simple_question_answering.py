@@ -31,7 +31,4 @@ def answer_simple_question(question: str) -> str:
         prompt = f"以下の質問に日本語で簡潔かつ明確に答えてください。\n[質問]\n{question}"
     else:
         prompt = f"아래 질문에 대해 간결하고 명확하게 답변해줘.\n[질문]\n{question}"
-    try:
-        return gpt_call(prompt, model="gpt-4-1106-preview-nano")
-    except Exception as e:
-        return f"오류: 답변 생성 실패 - {e}" 
+    return gpt_call(prompt, model="gpt-4.1-nano")
