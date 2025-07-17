@@ -74,18 +74,33 @@ class QAAssistantAgent:
 
 class ComplianceDetectorAgent:
     def detect(self, sections):
-        # sections: dict (title -> content)
+        """
+        sections: dict (title -> content)
+        Returns dict: {"success": bool, "data": list, "error": str}
+        """
+        import json
         text = "\n\n".join([f"[{title}]\n{content}" for title, content in sections.items()])
         prompt = f"""
         아래 문서 섹션에서 컴플라이언스(법적/불공정/개인정보 등) 이슈가 의심되는 부분을 모두 찾아,
         [이슈 유형], [관련 법령], [설명], [근거(문장)] 형태로 JSON 배열로 정리해줘.
+        반드시 JSON 배열로 반환해. 예시: [{{"issue_type": "법적 위험", "law": "GDPR", "desc": "...", "evidence": "..."}}]
         [문서]
         {text}
         """
+        from utils.openai_utils import gpt_call
         try:
-            return gpt_call(prompt, model="gpt-4-1106-preview-nano")
+            raw = gpt_call(prompt, model="gpt-4-1106-preview-nano")
+            try:
+                raw = raw.strip('`').replace('json', '').strip()
+                result = json.loads(raw)
+                if isinstance(result, list):
+                    return {"success": True, "data": result}
+                else:
+                    return {"success": False, "error": "LLM output is not a list. Raw output: " + str(raw)}
+            except Exception as e:
+                return {"success": False, "error": f"LLM output parsing failed: {e}. Raw output: {raw}"}
         except Exception as e:
-            return f"오류: 컴플라이언스 이슈 추출 실패 - {e}"
+            return {"success": False, "error": f"컴플라이언스 이슈 추출 실패 - {e}"}
 
 class EscalationAgent:
     def escalate(self, issue):

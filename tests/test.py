@@ -28,8 +28,6 @@ for item in simple_data['simple_questions']:
     
     print(f"[{item['id']}] 질문: {question_text}\n=> 분류 결과: {intention}\n")
 
-
-
 print("\n=== Complex Questions ===")
 for item in complex_data['complex_questions']:
     question_text = item['question']
