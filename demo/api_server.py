@@ -5,6 +5,7 @@ from pydantic import BaseModel
 import os
 import shutil
 from scripts.langgraph_workflow import app, State
+from fastapi.staticfiles import StaticFiles
 
 app_api = FastAPI(
     title="QARouting.ai API",
@@ -23,6 +24,7 @@ app_api.add_middleware(
 
 UPLOAD_DIR = "./uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+app_api.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 class WorkflowResponse(BaseModel):
     result: dict | None = None
@@ -53,16 +55,22 @@ async def run_workflow(
         file_path = os.path.join(UPLOAD_DIR, "input.md")
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(text)
-    
     if not file_path:
         return WorkflowResponse(result=None, error="No file or text provided.")
-
     state: State = {"file_path": file_path}
     try:
         result = app.run(state)  # type: ignore[attr-defined]
     except Exception as e:
         return WorkflowResponse(result=None, error=f"Workflow execution failed: {e}")
     return WorkflowResponse(result=result, error=None)
+
+@app_api.get("/api/files", summary="업로드 파일 리스트", tags=["Files"])
+async def list_files():
+    files = []
+    for fname in os.listdir(UPLOAD_DIR):
+        if fname.lower().endswith((".pdf", ".md", ".txt", ".json")):
+            files.append(fname)
+    return JSONResponse(content={"files": files})
 
 if __name__ == "__main__":
     import uvicorn
