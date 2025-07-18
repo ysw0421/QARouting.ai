@@ -33,4 +33,3 @@ def answer_simple_question(question: str) -> dict:
     return {
         "answer": answer
     }
-
