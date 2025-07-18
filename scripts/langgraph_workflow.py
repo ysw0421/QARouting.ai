@@ -32,6 +32,12 @@ class State(TypedDict, total=False):
     escalation_needed: bool
     escalation: Any
     error: str
+    # 디버깅용 임시 필드
+    intention_agent: Any
+    question_answer_agent: Any
+    compliance_agent: Any
+    ticket_agent: Any
+    escalation_agent: Any
 
 # LangGraph 워크플로우 정의 (다이어그램 명칭 반영)
 graph = StateGraph(state_schema=State)
@@ -69,6 +75,7 @@ def question_intention_ingester_agent(state: State) -> State:
     logger.info("[QuestionIntentionIngesterAgent] 시작")
     text = state.get("text", "")
     result = classify_intention(text)
+    state["intention_agent"] = result
     if not result.get("success"):
         logger.error("[QuestionIntentionIngesterAgent] 실패: %s", result.get("error"))
         state["error"] = result.get("error", "의도 분류 실패")
@@ -83,6 +90,7 @@ def simple_question_answering_agent(state: State) -> State:
     logger.info("[SimpleQuestionAnsweringAgent] 시작")
     question = state.get("text", "")
     result = answer_simple_question(question)
+    state["question_answer_agent"] = result
     if not result.get("success"):
         logger.error("[SimpleQuestionAnsweringAgent] 실패: %s", result.get("error"))
         state["error"] = result.get("error", "답변 생성 실패")
@@ -96,6 +104,7 @@ def simple_question_answering_agent(state: State) -> State:
 def potential_compliance_verification_agent(state: State) -> State:
     logger.info("[PotentialComplianceVerificationAgent] 시작")
     result = generate_compliance_risk_assessment(state.get("text", ""))
+    state["compliance_agent"] = result
     if not result.get("success"):
         logger.error("[PotentialComplianceVerificationAgent] 실패: %s", result.get("error"))
         state["error"] = result.get("error", "컴플라이언스 평가 실패")
@@ -112,6 +121,7 @@ def ticket_generator_agent(state: State) -> State:
     if not assessment:
         assessment = state.get("text", "")
     result = generate_ticket(assessment)
+    state["ticket_agent"] = result
     if not result.get("success"):
         logger.error("[TicketGeneratorAgent] 실패: %s", result.get("error"))
         state["error"] = result.get("error", "티켓 생성 실패")
@@ -129,6 +139,7 @@ def legal_team_escalator_agent(state: State) -> State:
     logger.info("[LegalTeamEscalatorAgent] 시작")
     ticket = state.get("ticket", "")
     result = escalate_ticket(ticket)
+    state["escalation_agent"] = result
     if not result.get("success"):
         logger.error("[LegalTeamEscalatorAgent] 실패: %s", result.get("error"))
         state["error"] = result.get("error", "에스컬레이션 실패")
@@ -144,9 +155,11 @@ graph.add_node("simple", simple_question_answering_agent)
 graph.add_node("compliance", potential_compliance_verification_agent)
 graph.add_node("ticket", ticket_generator_agent)
 graph.add_node("escalation", legal_team_escalator_agent)
+graph.add_node("END", lambda state: state)
+
+graph.set_entry_point("ingest")
 
 # 플로우 선언 (다이어그램 일치)
-graph.add_edge("ingest", "intention")
 graph.add_conditional_edges("intention", lambda s: s["intent"], {
     "simple": "simple",
     "compliance": "compliance",

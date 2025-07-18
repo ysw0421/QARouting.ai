@@ -22,11 +22,14 @@ def answer_simple_question(question: str) -> dict:
     """
     lang = detect_language(question)
     if lang == "ko":
-        prompt = f"아래 질문에 대해 간결하고 명확하게 한국어로 답변해줘. 반드시 JSON 문자열로 {{\"answer\": \"...\"}} 형태로 반환해.\n[질문]\n{question}"
+        prompt = f"아래 질문에 대해 간결하고 명확하게 한국어로 답변해줘.\n[질문]\n{question}"
     elif lang == "en":
-        prompt = f"Answer the following question concisely and clearly in English. Return only a JSON string like {{\"answer\": \"...\"}}.\n[Question]\n{question}"
+        prompt = f"Answer the following question concisely and clearly in English.\n[Question]\n{question}"
     elif lang == "ja":
-        prompt = f"以下の質問に日本語で簡潔かつ明確に答えてください。必ず {{\"answer\": \"...\"}} のJSON文字列で返してください。\n[質問]\n{question}"
+        prompt = f"以下の質問に日本語で簡潔かつ明確に答えてください。必ず \n[質問]\n{question}"
     else:
         prompt = f"아래 질문에 대해 간결하고 명확하게 답변해줘.\n[질문]\n{question}"
-    return gpt_call(prompt, model="gpt-4.1-nano")
+    answer = gpt_call(prompt, model="gpt-4.1-nano")
+    return {
+        "answer": answer
+    }
