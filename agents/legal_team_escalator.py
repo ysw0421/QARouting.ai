@@ -47,6 +47,8 @@ def send_email(to_address, subject, body):
     smtp_user = os.getenv("SMTP_USER")
     smtp_password = os.getenv("SMTP_PASSWORD")
     if not smtp_user or not smtp_password:
+        import logging
+        logging.warning("[이메일 MOCK] SMTP 환경변수 미설정. 실제 발송되지 않음. 대상: %s | 제목: %s", to_address, subject)
         print(f"[이메일 MOCK] {to_address} | {subject} | {body}")
         return  # 환경변수 없으면 Mock
     msg = MIMEText(body)
