@@ -19,8 +19,6 @@ with open(simple_data_path, 'r', encoding='utf-8') as file:
 complex_data_path = os.path.join(project_root, 'data', 'complex_legal_questions.json')
 with open(complex_data_path, 'r', encoding='utf-8') as file:
     complex_data = json.load(file)
-
-
     
 print("=== Simple Questions ===")
 for item in simple_data['simple_questions']:
@@ -29,8 +27,6 @@ for item in simple_data['simple_questions']:
     intention = classify_intention(question_text)
     
     print(f"[{item['id']}] 질문: {question_text}\n=> 분류 결과: {intention}\n")
-
-
 
 print("\n=== Complex Questions ===")
 for item in complex_data['complex_questions']:

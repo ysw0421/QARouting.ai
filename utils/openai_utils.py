@@ -1,6 +1,8 @@
-from openai import OpenAI
 import os
+from dotenv import load_dotenv
+from openai import OpenAI
 
+load_dotenv()
 
 def gpt_call(prompt, model="gpt-3.5-turbo", temperature=0):
     api_key = os.getenv("OPENAI_API_KEY")
@@ -14,4 +16,4 @@ def gpt_call(prompt, model="gpt-3.5-turbo", temperature=0):
         max_tokens=1024,
     )
     content = response.choices[0].message.content
-    return content.strip() if content else "" 
+    return content.strip() if content else ""
