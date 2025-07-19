@@ -5,11 +5,11 @@ import sys
 import os
 import logging
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from agents.question_intention_ingester import classify_intention
-from agents.simple_question_answering import answer_simple_question
-from agents.potential_compliance_verification import generate_compliance_risk_assessment
-from agents.ticket_generator import generate_ticket
-from agents.legal_team_escalator import escalate_ticket
+from agents.question_intention_ingester import QuestionIntentionIngesterAgent
+from agents.simple_question_answering import SimpleQuestionAnsweringAgent
+from agents.potential_compliance_verification import PotentialComplianceVerificationAgent
+from agents.ticket_generator import TicketGeneratorAgent
+from agents.legal_team_escalator import LegalTeamEscalatorAgent
 from utils.pdf_ingest import extract_text_from_pdf
 from langgraph.graph import StateGraph
 from typing import TypedDict, Any
@@ -74,14 +74,18 @@ def document_ingestor_agent(state: State) -> State:
 def question_intention_ingester_agent(state: State) -> State:
     logger.info("[QuestionIntentionIngesterAgent] 시작")
     text = state.get("text", "")
-    result = classify_intention(text)
+    agent = QuestionIntentionIngesterAgent()
+    result = agent.classify(text)
     state["intention_agent"] = result
     if not result.get("success"):
         logger.error("[QuestionIntentionIngesterAgent] 실패: %s", result.get("error"))
         state["error"] = result.get("error", "의도 분류 실패")
+        state["intent"] = ""
         return state
-    state["intent"] = result["data"]
-    logger.info("[QuestionIntentionIngesterAgent] 성공: %s", result["data"])
+    # result["data"]는 dict이므로 intent 값만 추출
+    intent = result["data"].get("intent") if isinstance(result["data"], dict) else result["data"]
+    state["intent"] = intent if intent is not None else ""
+    logger.info("[QuestionIntentionIngesterAgent] 성공: %s", intent)
     return state
 
 # 2. SimpleQuestionAnsweringAgent
@@ -89,7 +93,8 @@ def question_intention_ingester_agent(state: State) -> State:
 def simple_question_answering_agent(state: State) -> State:
     logger.info("[SimpleQuestionAnsweringAgent] 시작")
     question = state.get("text", "")
-    result = answer_simple_question(question)
+    agent = SimpleQuestionAnsweringAgent()
+    result = agent.answer(question)
     state["question_answer_agent"] = result
     if not result.get("success"):
         logger.error("[SimpleQuestionAnsweringAgent] 실패: %s", result.get("error"))
@@ -103,7 +108,8 @@ def simple_question_answering_agent(state: State) -> State:
 # (컴플라이언스 위험 평가)
 def potential_compliance_verification_agent(state: State) -> State:
     logger.info("[PotentialComplianceVerificationAgent] 시작")
-    result = generate_compliance_risk_assessment(state.get("text", ""))
+    agent = PotentialComplianceVerificationAgent()
+    result = agent.generate(state.get("text", ""))
     state["compliance_agent"] = result
     if not result.get("success"):
         logger.error("[PotentialComplianceVerificationAgent] 실패: %s", result.get("error"))
@@ -120,7 +126,8 @@ def ticket_generator_agent(state: State) -> State:
     assessment = state.get("assessment", "")
     if not assessment:
         assessment = state.get("text", "")
-    result = generate_ticket(assessment)
+    agent = TicketGeneratorAgent()
+    result = agent.generate(assessment)
     state["ticket_agent"] = result
     if not result.get("success"):
         logger.error("[TicketGeneratorAgent] 실패: %s", result.get("error"))
@@ -138,7 +145,8 @@ def ticket_generator_agent(state: State) -> State:
 def legal_team_escalator_agent(state: State) -> State:
     logger.info("[LegalTeamEscalatorAgent] 시작")
     ticket = state.get("ticket", "")
-    result = escalate_ticket(ticket)
+    agent = LegalTeamEscalatorAgent()
+    result = agent.escalate(ticket)
     state["escalation_agent"] = result
     if not result.get("success"):
         logger.error("[LegalTeamEscalatorAgent] 실패: %s", result.get("error"))
@@ -160,15 +168,19 @@ graph.add_node("END", lambda state: state)
 graph.set_entry_point("ingest")
 
 # 플로우 선언 (다이어그램 일치)
-graph.add_conditional_edges("intention", lambda s: s["intent"], {
-    "simple": "simple",
-    "compliance": "compliance",
-    "terms_review": "ticket"
-})
-graph.add_edge("simple", "END")
-graph.add_edge("compliance", "ticket")
-graph.add_edge("ticket", "escalation")
-graph.add_edge("escalation", "END")
+# 워크플로우 그래프 정의부에서 각 Agent가 항상 실행되도록 분기 조건 제거
+workflow = [
+    document_ingestor_agent,
+    question_intention_ingester_agent,
+    simple_question_answering_agent,
+    potential_compliance_verification_agent,
+    ticket_generator_agent,
+    legal_team_escalator_agent,
+]
+def run_workflow(state: State) -> State:
+    for step in workflow:
+        state = step(state)
+    return state
 
 app = graph.compile()
 
