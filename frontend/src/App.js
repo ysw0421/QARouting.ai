@@ -5,6 +5,7 @@ import TopologyDiagram from './components/visualization/TopologyDiagram';
 import ResultDetail from './components/result/ResultDetail';
 import WorkflowRunner from './components/input/WorkflowRunner';
 import BenchmarkResult from './components/result/BenchmarkResult';
+import LegalWorkflowDiagram from './components/visualization/LegalWorkflowDiagram';
 
 const BENCHMARK_FILES = [
   { label: '전체 결과', file: 'benchmark_results.json' },
@@ -108,6 +109,7 @@ function App() {
         {/* 일반 워크플로우 결과만 있을 때만 토폴로지/상세 표시 */}
         {!benchmarkResult && (
           <>
+            <LegalWorkflowDiagram workflowResult={workflowResult} />
             <TopologyDiagram workflowResult={workflowResult} />
             <ResultDetail workflowResult={workflowResult} />
           </>
