@@ -87,13 +87,6 @@ cd QARouting.ai && uvicorn demo.api_server:app_api --host 0.0.0.0 --port 8000 --
 # 프론트엔드 실행
 cd frontend && npm start
 ```
-
-### 2. Docker Compose (운영/테스트)
-
-```bash
-docker-compose up --build
-```
-
 ---
 
 ## API 명세 (FastAPI)
