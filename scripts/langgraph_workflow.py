@@ -182,7 +182,7 @@ def run_workflow(state: State) -> State:
         state = step(state)
     return state
 
-app = graph.compile()
+workflow_app = graph.compile()
 
 if __name__ == "__main__":
     print("=== LangGraph 기반 약관/문서 QA & 라우팅 플로우 (다이어그램 일치) ===")
@@ -191,6 +191,6 @@ if __name__ == "__main__":
         print("Exiting workflow.")
     else:
         state: State = {"file_path": file_path}
-        result = app.run(state)  # type: ignore[attr-defined]
+        result = workflow_app.run(state)  # type: ignore[attr-defined]
         print("[최종 결과]", result) 
         
