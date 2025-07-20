@@ -6,7 +6,7 @@ import os
 import shutil
 from dotenv import load_dotenv
 load_dotenv()
-from scripts.langgraph_workflow import app, State
+from scripts.langgraph_workflow import run_workflow, State
 from fastapi.staticfiles import StaticFiles
 from typing import List
 import json
@@ -192,6 +192,8 @@ async def delete_benchmark_case(case_id: int):
 @app_api.get("/favicon.ico", include_in_schema=False)
 async def serve_spa():
     return FileResponse("frontend/build/index.html")
+
+app = app_api
 
 if __name__ == "__main__":
     import uvicorn
