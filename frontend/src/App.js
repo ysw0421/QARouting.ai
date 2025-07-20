@@ -5,6 +5,7 @@ import TopologyDiagram from './components/visualization/TopologyDiagram';
 import ResultDetail from './components/result/ResultDetail';
 import WorkflowRunner from './components/input/WorkflowRunner';
 import BenchmarkResult from './components/result/BenchmarkResult';
+import dayjs from 'dayjs';
 
 const BENCHMARK_FILES = [
   { label: '전체 결과', file: 'benchmark_results.json' },
@@ -15,7 +16,6 @@ function App() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [workflowResult, setWorkflowResult] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [benchmarkResult, setBenchmarkResult] = useState(null);
   const [selectedBenchmark, setSelectedBenchmark] = useState(null);
   const workflowRunnerRef = useRef();
@@ -27,47 +27,93 @@ function App() {
     setBenchmarkResult(null);
     setSelectedBenchmark(null);
     setError(null);
-    try {
-      const fileRes = await fetch(`/uploads/${filename}`);
-      if (!fileRes.ok) throw new Error('파일을 읽을 수 없습니다.');
-      const blob = await fileRes.blob();
-      // 파일 내용이 HTML인지 사전 체크
-      const text = await blob.text();
-      if (text.includes('<!DOCTYPE html') || text.includes('<html')) {
-        setError('업로드 파일이 HTML로 인식됩니다. 서버에 index.html이 잘못 저장된 것일 수 있습니다.');
-        return;
-      }
-      const file = new File([blob], filename);
-      if (workflowRunnerRef.current && workflowRunnerRef.current.setFile) {
-        workflowRunnerRef.current.setFile(file);
-      }
-    } catch (err) {
-      setError('파일 불러오기 실패: ' + err.message);
+    // 서버 파일 실행: 파일명만 setFile에 전달
+    if (workflowRunnerRef.current && workflowRunnerRef.current.setFile) {
+      workflowRunnerRef.current.setFile(filename);
     }
   };
 
   // 벤치마크 파일 클릭 시
   const handleBenchmarkSelect = async (filename) => {
     setSelectedFile(null);
-    setWorkflowResult(null);
+    setWorkflowResult({ loading: true });
     setBenchmarkResult(null);
     setSelectedBenchmark(filename);
     setLoading(true);
-    setError(null);
     try {
-      // 벤치마크 파일은 /results/ 또는 /uploads/ 또는 /eval/ 등에서 가져옴
       let res = await fetch(`/results/${filename}`);
       if (!res.ok) res = await fetch(`/uploads/${filename}`);
       if (!res.ok) res = await fetch(`/eval/${filename}`);
       if (!res.ok) throw new Error('벤치마크 파일을 읽을 수 없습니다.');
       const data = await res.json();
       setBenchmarkResult(data);
+      if (Array.isArray(data)) {
+        // Find first valid case with at least one key field
+        const valid = data.find(
+          d => d && (d.file_path || d.text || d.intent || d.assessment || d.ticket || d.escalation)
+        );
+        if (valid) {
+          setWorkflowResult(valid);
+        } else {
+          setWorkflowResult({ error: "벤치마크 케이스에 유효한 결과가 없습니다." });
+        }
+      } else if (data && (
+        data.file_path || data.text || data.intent || data.assessment || data.ticket || data.escalation
+      )) {
+        setWorkflowResult(data);
+      } else {
+        setWorkflowResult({ error: "벤치마크 케이스에 유효한 결과가 없습니다." });
+      }
     } catch (err) {
-      setError('벤치마크 결과 불러오기 실패: ' + err.message);
+      setWorkflowResult({ error: "벤치마크 결과 불러오기 실패: " + err.message });
     } finally {
       setLoading(false);
     }
   };
+
+  // 워크플로우 결과가 새로 생성될 때 uploads/에 저장
+  React.useEffect(() => {
+    if (workflowResult && !benchmarkResult) {
+      const save = async () => {
+        const ts = dayjs().format('YYYYMMDD_HHmmss');
+        const filename = `workflow_result_${ts}`;
+        try {
+          const res = await fetch('/api/save_final_result', {
+            method: 'POST',
+            body: (() => {
+              const form = new FormData();
+              form.append('result', new Blob([JSON.stringify(workflowResult)], { type: 'application/json' }));
+              form.append('filename', filename);
+              return form;
+            })(),
+          });
+          const data = await res.json();
+          if (data.success) {
+            alert(`최종 결과가 uploads/${filename}.json 으로 저장되었습니다.`);
+          } else {
+            alert('최종 결과 저장 실패: ' + (data.error || 'Unknown error'));
+          }
+        } catch (e) {
+          alert('최종 결과 저장 중 오류: ' + e.message);
+        }
+      };
+      save();
+    }
+  }, [workflowResult, benchmarkResult]);
+
+  console.log('App workflowResult:', workflowResult);
+
+  const hasWorkflowResult =
+    workflowResult &&
+    (
+      workflowResult.file_path ||
+      workflowResult.text ||
+      workflowResult.intent ||
+      workflowResult.assessment ||
+      workflowResult.ticket ||
+      workflowResult.escalation ||
+      workflowResult.answer // <-- 추가: simple Q&A 결과도 정상 인식
+    );
 
   return (
     <div style={{ display: 'flex', height: '100vh', background: '#f4f6f8' }}>
@@ -100,7 +146,12 @@ function App() {
           ))}
         </div>
         {loading && <div style={{ color: '#1890ff', fontWeight: 'bold', marginBottom: 12 }}>워크플로우 실행 중...</div>}
-        {error && <div style={{ color: 'red', marginBottom: 12 }}>{error}</div>}
+        {/* 에러 메시지 */}
+        {workflowResult && workflowResult.error && (
+          <div style={{ color: 'red', fontWeight: 700, margin: '12px 0' }}>
+            {workflowResult.error}
+          </div>
+        )}
         {/* 벤치마크 결과가 선택된 경우 우선 표시 */}
         {benchmarkResult && selectedBenchmark && (
           <BenchmarkResult resultData={benchmarkResult} filename={selectedBenchmark} />
@@ -111,6 +162,12 @@ function App() {
             <TopologyDiagram workflowResult={workflowResult} />
             <ResultDetail workflowResult={workflowResult} />
           </>
+        )}
+        {/* 워크플로우 결과가 없을 때 메시지 */}
+        {!workflowResult?.error && !hasWorkflowResult && (
+          <div style={{ color: 'red', fontWeight: 700, margin: '12px 0' }}>
+            워크플로우 결과를 받을 수 없습니다.
+          </div>
         )}
       </div>
     </div>
