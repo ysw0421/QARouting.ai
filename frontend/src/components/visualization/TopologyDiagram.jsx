@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import Mermaid from 'mermaid-react';
+// import Mermaid from 'mermaid-react'; // REMOVE
 
 // 상태별 텍스트 및 색상
 const statusText = {
@@ -50,75 +50,56 @@ function getNodeStatus(workflowResult) {
 
 function getNodeStyle(status) {
   switch (status) {
-    case 'success': return 'fill:#e6ffed,stroke:#52c41a,stroke-width:2px';
-    case 'error': return 'fill:#fff1f0,stroke:#ff4d4f,stroke-width:2px';
-    case 'pending': return 'fill:#f0f5ff,stroke:#faad14,stroke-width:2px,stroke-dasharray:4 2';
-    case 'notrun': return 'fill:#f5f5f5,stroke:#bfbfbf,stroke-width:1px';
-    default: return '';
+    case 'success': return { background: '#e6ffed', border: '2px solid #52c41a' };
+    case 'error': return { background: '#fff1f0', border: '2px solid #ff4d4f' };
+    case 'pending': return { background: '#f0f5ff', border: '2px dashed #faad14' };
+    case 'notrun': return { background: '#f5f5f5', border: '1px solid #bfbfbf' };
+    default: return {};
   }
 }
 
-// 노드별 상태 텍스트 및 툴팁 생성
-function getNodeLabel(node, status, workflowResult) {
-  let label = '';
-  switch (node) {
-    case 'ingest': label = 'Ingest'; break;
-    case 'intention': label = 'Intention'; break;
-    case 'simple': label = 'Simple Q&A'; break;
-    case 'compliance': label = 'Compliance'; break;
-    case 'ticket': label = 'Ticket'; break;
-    case 'escalation': label = 'Escalation'; break;
-    default: label = node;
-  }
-  const st = statusText[status] || '';
-  // 에러 메시지 툴팁
-  let tooltip = st;
-  if (status === 'error' && workflowResult && workflowResult.error) {
-    tooltip += `\n에러: ${workflowResult.error}`;
-  }
-  return `${label} [${st}]:::${node}Tooltip`;
-}
+const nodeLabels = [
+  { key: 'ingest', label: 'Ingest' },
+  { key: 'intention', label: 'Intention' },
+  { key: 'simple', label: 'Simple Q&A' },
+  { key: 'compliance', label: 'Compliance' },
+  { key: 'ticket', label: 'Ticket' },
+  { key: 'escalation', label: 'Escalation' },
+];
 
 export default function TopologyDiagram({ workflowResult }) {
   const nodeStatus = useMemo(() => getNodeStatus(workflowResult), [workflowResult]);
-  // 노드별 라벨 및 툴팁
-  const nodes = [
-    'ingest', 'intention', 'simple', 'compliance', 'ticket', 'escalation'
-  ];
-  const nodeLabels = nodes.reduce((acc, node) => {
-    acc[node] = getNodeLabel(node, nodeStatus[node], workflowResult);
-    return acc;
-  }, {});
-  // Mermaid 정의
-  const mermaidDef = useMemo(() => {
-    return `graph TD
-      INGEST["${nodeLabels.ingest}"]:::ingest --> INTENTION["${nodeLabels.intention}"]:::intention
-      INTENTION -- Simple --> SIMPLE["${nodeLabels.simple}"]:::simple
-      INTENTION -- Compliance --> COMPLIANCE["${nodeLabels.compliance}"]:::compliance
-      INTENTION -- Terms Review --> TICKET["${nodeLabels.ticket}"]:::ticket
-      COMPLIANCE --> TICKET
-      TICKET --> ESCALATION["${nodeLabels.escalation}"]:::escalation
-      SIMPLE --> END((END))
-      ESCALATION --> END
-      classDef ingest ${getNodeStyle(nodeStatus.ingest)};
-      classDef intention ${getNodeStyle(nodeStatus.intention)};
-      classDef simple ${getNodeStyle(nodeStatus.simple)};
-      classDef compliance ${getNodeStyle(nodeStatus.compliance)};
-      classDef ticket ${getNodeStyle(nodeStatus.ticket)};
-      classDef escalation ${getNodeStyle(nodeStatus.escalation)};
-      class INGEST ingest;
-      class INTENTION intention;
-      class SIMPLE simple;
-      class COMPLIANCE compliance;
-      class TICKET ticket;
-      class ESCALATION escalation;
-    `;
-  }, [nodeLabels, nodeStatus]);
-
   return (
     <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: 8, padding: 16, marginBottom: 16 }}>
       <h4 style={{ margin: 0, marginBottom: 8, color: '#333' }}>Workflow Topology</h4>
-      <Mermaid chart={mermaidDef} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+        {nodeLabels.map((node, idx) => (
+          <div key={node.key} style={{
+            ...getNodeStyle(nodeStatus[node.key]),
+            flex: 1,
+            margin: '0 8px',
+            padding: 16,
+            borderRadius: 8,
+            textAlign: 'center',
+            fontWeight: 'bold',
+            color: '#333',
+            position: 'relative',
+          }}>
+            {node.label}
+            <div style={{ fontSize: 12, color: '#888', marginTop: 8 }}>{statusText[nodeStatus[node.key]]}</div>
+            {idx < nodeLabels.length - 1 && (
+              <div style={{
+                position: 'absolute',
+                right: -16,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                fontSize: 24,
+                color: '#bbb',
+              }}>→</div>
+            )}
+          </div>
+        ))}
+      </div>
       <div style={{ marginTop: 8, fontSize: 13, color: '#888' }}>
         <b>상태 안내:</b>
         <span style={{ color: statusColor.success, marginLeft: 8 }}>[성공]</span>
