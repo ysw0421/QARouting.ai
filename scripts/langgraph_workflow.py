@@ -4,6 +4,7 @@ LangGraph 기반 약관/문서 QA & 라우팅 플로우 (다이어그램 일치)
 import sys
 import os
 import logging
+import copy
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from agents.question_intention_ingester import QuestionIntentionIngesterAgent
 from agents.simple_question_answering import SimpleQuestionAnsweringAgent
@@ -181,6 +182,29 @@ def run_workflow(state: State) -> State:
     for step in workflow:
         state = step(state)
     return state
+
+def run_workflow_stream(state: State):
+    # 입력 전처리 및 의도 분석
+    state = document_ingestor_agent(state)
+    yield copy.deepcopy(state)
+    state = question_intention_ingester_agent(state)
+    yield copy.deepcopy(state)
+    intent = state.get('intent')
+    if intent == 'simple':
+        state = simple_question_answering_agent(state)
+        yield copy.deepcopy(state)
+        return
+    elif intent in ('complex', 'terms_review'):
+        state = potential_compliance_verification_agent(state)
+        yield copy.deepcopy(state)
+        state = ticket_generator_agent(state)
+        yield copy.deepcopy(state)
+        state = legal_team_escalator_agent(state)
+        yield copy.deepcopy(state)
+        return
+    else:
+        # 기타 의도: 아무것도 실행하지 않음
+        return
 
 app = graph.compile()
 
