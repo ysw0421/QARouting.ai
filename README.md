@@ -87,6 +87,7 @@ npm run build
 cd ..
 # 백엔드 실행
 uvicorn demo.api_server:app_api --host 0.0.0.0 --port 8000
+```
 ```bash
 # 프론트엔드 실행
 cd frontend && npm start
