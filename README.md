@@ -81,9 +81,13 @@ QARouting.ai/
 ```bash
 # Python, Node.js 설치
 pip install -r requirements.txt
-cd frontend && npm install
+cd frontend &&
+npm install
+npm run build
+cd ..
 # 백엔드 실행
-cd QARouting.ai && uvicorn demo.api_server:app_api --host 0.0.0.0 --port 8000 --reload
+uvicorn demo.api_server:app_api --host 0.0.0.0 --port 8000
+```bash
 # 프론트엔드 실행
 cd frontend && npm start
 ```
