@@ -76,21 +76,44 @@ QARouting.ai/
 
 ## 실행 방법 (실무 기준)
 
-### 1. 로컬 개발 환경
+### 1. AutoRouting.ai.zip 파일 로컬 개발 환경 (추천)
+### 설치 준비
+```bash
+AutoRouting.ai.zip
+zip 파일 압축 풀기(npm 환경 셋업이 잘안되었을시를 위해 준비)
+```
+### 백엔드 실행
+```bash
+cd QARouting.ai
+mkdir results
+uvicorn demo.api_server:app_api --host 0.0.0.0 --port 8000
+http://127.0.0.1:8000
+```
+### 프론트엔드 실행
+```bash
+cd QARouting.ai/frontend 
+npm start
+http://127.0.0.1:3000
+```
 
+### 2. 로컬 개발 환경
+### 설치 준비
 ```bash
 # Python, Node.js 설치
 pip install -r requirements.txt
 cd frontend &&
 npm install --force
 npm run build
-cd ..
-# 백엔드 실행
-uvicorn demo.api_server:app_api --host 0.0.0.0 --port 8000
 ```
+### 백엔드 실행
 ```bash
-# 프론트엔드 실행
+uvicorn demo.api_server:app_api --host 0.0.0.0 --port 8000
+http://127.0.0.1:8000
+```
+### 프론트엔드 실행
+```bash
 cd frontend && npm start
+http://127.0.0.1:3000
 ```
 ---
 
