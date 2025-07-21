@@ -117,6 +117,11 @@ http://127.0.0.1:3000
 ```
 ---
 
+<img width="1908" height="992" alt="image" src="https://github.com/user-attachments/assets/fcc49b57-dea4-413e-b83b-3bb98e1f2c73" />
+
+<img width="1680" height="406" alt="image" src="https://github.com/user-attachments/assets/e9e63ac5-d210-4acd-a920-68812523d89d" />
+
+
 ## API 명세 (FastAPI)
 
 ### /run_workflow (POST)
