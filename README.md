@@ -116,11 +116,12 @@ cd frontend && npm start
 http://127.0.0.1:3000
 ```
 ---
-
+####크전체 워크플로우 토폴로지
 <img width="1908" height="992" alt="image" src="https://github.com/user-attachments/assets/fcc49b57-dea4-413e-b83b-3bb98e1f2c73" />
-
+문서 업로드 또는 텍스트 입력시 결과 도출
+#### 결과 워크플로우 토폴로지
 <img width="1680" height="406" alt="image" src="https://github.com/user-attachments/assets/e9e63ac5-d210-4acd-a920-68812523d89d" />
-
+Mange Benchmark Cases 클릭시 평가 결과 도출
 
 ## API 명세 (FastAPI)
 
