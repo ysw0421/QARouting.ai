@@ -82,7 +82,7 @@ QARouting.ai/
 # Python, Node.js 설치
 pip install -r requirements.txt
 cd frontend &&
-npm install
+npm install --force
 npm run build
 cd ..
 # 백엔드 실행
